@@ -15,10 +15,13 @@ const typeDefs = `
 
 const resolvers = {
   Query: {
-    dummyData: (root, args) => {
-      if (args.id === '2') throw new Error('can\'t do that');
-      return { id: args.id, dataString: `this is data ${args.id}` };
-    },
+    dummyData: (root, args) =>
+      new Promise((resolve, reject) =>
+        setTimeout(() => {
+          if (args.id === '2') reject(new Error('can\'t do that'));
+          resolve({ id: args.id, dataString: `this is data ${args.id}` });
+        }, 1000)
+      ),
   },
 };
 
@@ -32,7 +35,19 @@ app.use('/graphiql', graphiqlExpress({ endpointURL: '/graphql' }));
 
 app.use(webpackDevMiddleware(webpack({
   mode: 'development',
-  entry: './client.js',
+  entry: './client.jsx',
+  module: {
+    rules: [
+      {
+        test: /\.(js|jsx)$/,
+        exclude: /node_modules/,
+        use: ['babel-loader']
+      }
+    ]
+  },
+  resolve: {
+    extensions: ['*', '.js', '.jsx']
+  },
   output: {
     filename: 'build.js',
   },
@@ -40,4 +55,4 @@ app.use(webpackDevMiddleware(webpack({
 
 app.use(express.static('./static'));
 
-app.listen(3000, () => console.log('listening...'));
+app.listen(4200, () => console.log('listening...'));
